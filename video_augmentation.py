@@ -1,5 +1,5 @@
 ############################################################################
-########################### REQUIRED PACKAGES# #############################
+########################### REQUIRED PACKAGES ##############################
 ############################################################################
 
 import cv2
@@ -13,158 +13,233 @@ from random import randint
 
 
 ############################################################################
+############################ AUX FUNCTIONS #################################
+############################################################################
+def show_img(img, text = "Imagen"):
+    cv2.imshow(text, img)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+def er(n, sigma = 3):
+    return randint(n-sigma, n+sigma)
+
+def noise(frame, shape, n_mats, rand_mats, prob = 0.15, verbose = False, n_frame = 0, spice = "pepper"):
+    rows, cols, channels = shape
+    r_rows = range(rows)
+    r_cols = range(cols)
+    r_channels = range(channels)
+    
+    if verbose:
+        print("rows = ", rows, ", cols = ", cols, ", channels = ", channels, sep = "")
+
+    if spice == "pepper":
+        for i in r_rows:
+            for j in r_cols:
+                if rand_mats[n_frame % n_mats][i,j] < prob:
+                    for k in r_channels:
+                        frame[i][j][k] = 0
+    elif spice == "salt":
+        for i in r_rows:
+            for j in r_cols:
+                if rand_mats[n_frame % n_mats][i,j] < prob:
+                    for k in r_channels:
+                        frame[i][j][k] = 255
+                        
+    return frame
+
+
+############################################################################
 ############################## AUGMENTATE ##################################
 ############################################################################
 
-def augmentate(input_dir, output_dir,
-               input_format, output_format, show_video=True,
-               save_video=False, slow=False, show_size=False,
-               seconds_before_action=0, transformations=["aff"]):
+def augmentate(input_dir, output_dir, 
+input_format, output_format, show_video = True, 
+save_video = False, slow = False, show_size = False, 
+seconds_before_action = 0, transformations = ["aff"]):
     # This function takes all the files in input_dir and, after applying the transformations, saves them in output_dir.
 
     ######################################################
-    # WORKING DIRECTORY
+    ## WORKING DIRECTORY
     files = os.listdir(input_dir)
     ######################################################
     exp = re.compile('.*\.' + input_format + '$')
     files_name = [s for s in files if exp.match(s)]
-    print("Working with the following files in '",
-          input_dir, "': ", files_name, sep="")
+    print("Working with the following files in '", input_dir,"': ", files_name, sep = "")
 
     if show_video:
         print("Press 'q' to stop playing\n")
 
+    salt_or_pepper = "bsalt" in transformations or "bpepper" in transformations or "asalt" in transformations or "apepper" in transformations
+
+    ######################################################
+    #### VARIABLES (I)
+    ######################################################
+    if salt_or_pepper:
+        print("files_name[0] = ", files_name[0])
+        print("input_dir + files_name[0] = ", input_dir + files_name[0])
+        cap_example = cv2.VideoCapture(input_dir + files_name[0]) # The first one
+        ret, frame = cap_example.read()
+        if ret:
+            rows, cols, channels = frame.shape
+            n_mats = 5
+            rand_mats = [np.random.rand(rows, cols) for i in range(n_mats)] # n_mats = 100 composiciones matriciales diferentes
+            cap_example.release()
+            print("len(rand_mats) = ", len(rand_mats))
+            print("rand_mats[0].shape = ", rand_mats[0].shape)
+            for i in range(2):
+                for j in range(2):
+                    print("i = ", i, "j = ", j, "rand_mats[0][i,j] = ", rand_mats[0][i,j])
+        else:
+            print("Problem reading the first file")
+            exit()
+
+
+    ######################################################
+    #### FOR EACH FILE
+    ######################################################
     for input_data in files_name:
         if seconds_before_action > 0:
-            print("Reading ", input_data, " from second ",
-                  seconds_before_action, "...", sep='')
-        else:
+            print("Reading ", input_data, " from second ", seconds_before_action, "...", sep='')
+        else: 
             print("Reading", input_data, "...")
 
         ######################################################
-        # VARIABLES
+        #### VARIABLES (II)
         ######################################################
         cap = cv2.VideoCapture(input_dir + input_data)
+        n_frame = 0
         frame_time = 0
-        once = True  # TODO: REMAKE CODE TO AVOID THIS
-
-        # Additional functions
-        def er(n, sigma=3):
-            return randint(n-sigma, n+sigma)
-
-        # FPS
+        once = True
+  
+        ## FPS
         if show_video or save_video:
             fps = int(cap.get(cv2.CAP_PROP_FPS))
             fps_float = cap.get(cv2.CAP_PROP_FPS)
             spf = 1 / fps
 
-        # First frame
-        ret, frame = cap.read()
+        ## First frame
+        ret,frame = cap.read() 
+        new_frame = frame # For transformations
+        frame_before = frame # & visualization
 
         if ret:
-            # AFFINE TRANSFORMATION
+            ## AFFINE TRANSFORMATION
             ######################################################
             if "aff" in transformations:
                 points1 = np.float32([
-                    [er(50), er(50)],
-                    [er(100), er(50)],
-                    [er(50), er(200)]])
-                points2 = np.float32([[er(a, 10), er(b, 10)]
-                                     for [a, b] in points1])
-                M = cv2.getAffineTransform(
-                    points1, points2)  # Transformation matrix
-                h, w, c = frame.shape
+                                    [er(50), er(50)],
+                                    [er(100), er(50)],
+                                    [er(50), er(200)]])
+                points2 = np.float32([[er(a, 10), er(b, 10)] for [a,b] in points1])
+                M = cv2.getAffineTransform(points1,points2) # Transformation matrix
+                h,w,c = frame.shape
 
-        # For visualization
+        ## For visualization
             if show_video and show_size:
                 # Before
-                height_before, width_before, c = frame.shape
-                height_before = str(height_before)
-                width_before = str(width_before)
+                height_before, width_before, channels_before = frame.shape
+                height_before_str = str(height_before)
+                width_before_str = str(width_before)
 
             ######################################################
-            # SAVING THE VIDEO
+            ### SAVING THE VIDEO
             ######################################################
             if save_video:
                 output_format = "." + output_format
-                output_data = output_dir + input_data  # Saved with the same name
-
+                output_data = output_dir + input_data # Saved with the same name
+                
                 if(output_format == ".mp4"):
                     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
                 elif(output_format == ".avi"):
                     fourcc = cv2.VideoWriter_fourcc(*'XVID')
-                # Exit, format, fps, resolution
-                out = cv2.VideoWriter(output_data, fourcc, fps_float, (h, w))
-
+                out = cv2.VideoWriter(output_data, fourcc, fps_float, (h, w)) # Exit, format, fps, resolution
+        
         ######################################################
-        # MAIN LOOP
+        ### MAIN LOOP
         ######################################################
         while cap.isOpened():
-
+            
             if not ret:
                 break
 
             if (frame_time > seconds_before_action):
                 if slow:
-                    time.sleep(spf)  # For visualization
-
-                if show_video:
-                    frame_before = frame  # Saved for visualization
+                    time.sleep(spf) # For visualization
 
                 ######################################################
-                # TRANSFORMATIONS
+                ### TRANSFORMATIONS
                 ######################################################
 
-                # AFFINNE TRANSFORMATION
+                ### RANDOM SALT/PEPPER NOISE BEFORE
+                ######################################################                
+                if "bpepper" in transformations:
+                    new_frame = noise(frame = new_frame, shape = new_frame.shape, n_mats = n_mats, rand_mats = rand_mats, verbose = True, n_frame = n_frame, spice = "pepper")
+                if "bsalt" in transformations:
+                    new_frame = noise(frame = new_frame, shape = new_frame.shape, n_mats = n_mats, rand_mats = rand_mats, verbose = True, n_frame = n_frame, spice = "salt")
+
+                # TODO: bsalt
+
+                ### AFFINE TRANSFORMATION
                 ######################################################
-                frame = cv2.warpAffine(frame, M, (w, h))
-                if once:
-                    # After
-                    height, width, c = frame.shape
-                    height = str(height)
-                    width = str(width)
-                    once = False  # Never again
+                if "aff" in transformations:
+                    new_frame = cv2.warpAffine(new_frame,M,(w,h))
+                    if once: 
+                        print("Applying affine transformation")
 
                 ## TODO: UPSAMPLING & DOWNSAMPLING
                 ######################################################
                 # Xopre: I believe that this should go in the save/show the frame section
 
+
                 ## TODO: DARKEN & LIGHTEN
                 ######################################################
 
-                # TODO: RANDOM SALT/PEPPER NOISE
+
+                ## RANDOM SALT/PEPPER NOISE AFTER
                 ######################################################
+                if "apepper" in transformations:
+                    new_frame = noise(frame = new_frame, shape = new_frame.shape, n_mats = n_mats, rand_mats = rand_mats, verbose = True, n_frame = n_frame, spice = "pepper")
+                if "asalt" in transformations:
+                    new_frame = noise(frame = new_frame, shape = new_frame.shape, n_mats = n_mats, rand_mats = rand_mats, verbose = True, n_frame = n_frame, spice = "salt")
 
                 ######################################################
-                # SAVE THE FRAME
+                ### SAVE THE FRAME
                 ######################################################
                 if save_video:
-                    out.write(frame)
+                    out.write(new_frame)
 
                 ######################################################
-                # SHOW BOTH VIDEOS
+                ### SHOW BOTH VIDEOS
                 ######################################################
                 if show_video:
-                    both = np.concatenate((frame_before, frame), axis=1)
-                    cv2.putText(img=both, text="frame_time=" + str(round(frame_time, 2)), org=(
-                        20, 30), fontFace=cv2.FONT_HERSHEY_DUPLEX, fontScale=1, color=(0, 350, 0), thickness=2)
+                    both = np.concatenate((frame_before, new_frame), axis=1)
+                    cv2.putText(img=both, text="frame_time=" + str(round(frame_time, 2)), org=(20, 30), fontFace=cv2.FONT_HERSHEY_DUPLEX, fontScale=1, color=(0, 350, 0), thickness=2)
                     # TODO: Adapt frame_time
 
                     if show_size:
-                        cv2.imshow(input_data + ' Original ' + height_before + 'x' +
-                                   width_before + ' vs Procesada ' + height + 'x' + width, both)
+                        if once:
+                            # After every transformation
+                            height, width, c = new_frame.shape
+                            height = str(height)
+                            width = str(width)
+                            once = False # Never again
+                        cv2.imshow(input_data + ' Original ' + height_before_str + 'x' + width_before_str + ' vs Procesada ' + height + 'x' + width, both)
                     else:
                         cv2.imshow(input_data + ' Original vs Procesada', both)
-
-            if cv2.waitKey(1) & 0xFF == ord('q'):  # To stop visualization
-                break
+       
+            if cv2.waitKey(1) & 0xFF == ord('q'): # To stop visualization
+                break  
 
         ######################################################
-        # UPDATE VARIABLES
+        ### UPDATE VARIABLES
         ######################################################
+        # while cap.isOpened():
             # if (frame_time > seconds_before_action):
-            frame_time += spf  # Time flies
-            ret, frame = cap.read()  # Next frame
+            frame_time += spf # Time flies
+            ret,frame = cap.read() # Next frame
+            frame_before = frame # Saved for visualization 
+            new_frame = frame # Saved for visualization 
+            n_frame += 1
         # while cap.isOpened():
         cap.release()
         if save_video:
