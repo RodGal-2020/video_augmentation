@@ -11,6 +11,11 @@ import os
 from random import random
 from random import randint
 
+############################################################################
+########################### PACKAGE INFO ###################################
+############################################################################
+version = "8/6/22 - Total table"
+
 
 ############################################################################
 ############################ AUX FUNCTIONS #################################
@@ -175,11 +180,11 @@ seconds_before_action = -1, transformations = ["aff"], n_mats = 20, debug_mode =
                 ### RANDOM SALT/PEPPER NOISE BEFORE
                 ######################################################                
                 if "bpepper" in transformations:
-                    new_frame = noise(frame = new_frame, shape = new_frame.shape, n_mats = n_mats, rand_mats = rand_mats, verbose = True, n_frame = n_frame, spice = "pepper")
+                    new_frame = noise(frame = new_frame, shape = new_frame.shape, n_mats = n_mats, rand_mats = rand_mats, n_frame = n_frame, spice = "pepper")
                     if once: 
                         print("Applying before_pepper")
                 if "bsalt" in transformations:
-                    new_frame = noise(frame = new_frame, shape = new_frame.shape, n_mats = n_mats, rand_mats = rand_mats, verbose = True, n_frame = n_frame, spice = "salt")
+                    new_frame = noise(frame = new_frame, shape = new_frame.shape, n_mats = n_mats, rand_mats = rand_mats, n_frame = n_frame, spice = "salt")
                     if once: 
                         print("Applying before_salt")
 
@@ -212,11 +217,11 @@ seconds_before_action = -1, transformations = ["aff"], n_mats = 20, debug_mode =
                 ## RANDOM SALT/PEPPER NOISE AFTER
                 ######################################################
                 if "apepper" in transformations:
-                    new_frame = noise(frame = new_frame, shape = new_frame.shape, n_mats = n_mats, rand_mats = rand_mats, verbose = True, n_frame = n_frame, spice = "pepper")
+                    new_frame = noise(frame = new_frame, shape = new_frame.shape, n_mats = n_mats, rand_mats = rand_mats, n_frame = n_frame, spice = "pepper")
                     if once: 
                         print("Applying after_pepper")
                 if "asalt" in transformations:
-                    new_frame = noise(frame = new_frame, shape = new_frame.shape, n_mats = n_mats, rand_mats = rand_mats, verbose = True, n_frame = n_frame, spice = "salt")
+                    new_frame = noise(frame = new_frame, shape = new_frame.shape, n_mats = n_mats, rand_mats = rand_mats, n_frame = n_frame, spice = "salt")
                     if once: 
                         print("Applying after_salt")
 
