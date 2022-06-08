@@ -41,4 +41,5 @@ va.augmentate(input_dir, output_dir, input_format, output_format, show_video, sa
 * example.jpg taken from [Pixabay](https://pixabay.com/es/photos/globo-farolillos-chinos-linterna-3206530/)
 * example_small.jpg taken from [Pixabay](https://pixabay.com/es/photos/gato-felino-mascota-animal-6960183/)
 * example.mp4 taken from [Pixabay](https://pixabay.com/es/videos/truco-motos-sincr%C3%B3nico-extremo-1083/)
+* example2.mp4 taken from [Pixabay](https://pixabay.com/es/videos/gallo-pollo-aldea-granja-10685/)
 * work_in_progress.png taken from [Pixabay](https://pixabay.com/es/vectors/trabajo-en-progreso-firmar-actividad-24027/)

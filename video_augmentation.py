@@ -70,14 +70,13 @@ seconds_before_action = -1, transformations = ["aff"]):
     ######################################################
     #### VARIABLES (I)
     ######################################################
-    once = True
 
     cap_example = cv2.VideoCapture(input_dir + files_name[0]) # The first one
     ret, frame = cap_example.read()
     if ret:
         if salt_or_pepper:
             rows, cols, channels = frame.shape
-            n_mats = 5
+            n_mats = 20
             rand_mats = [np.random.rand(rows, cols) for i in range(n_mats)] # n_mats = 100 composiciones matriciales diferentes
             cap_example.release()
 
@@ -106,6 +105,7 @@ seconds_before_action = -1, transformations = ["aff"]):
         cap = cv2.VideoCapture(input_dir + input_data)
         n_frame = 0
         frame_time = 0
+        once = True
   
         ## FPS
         if show_video or save_video:
@@ -249,17 +249,21 @@ seconds_before_action = -1, transformations = ["aff"]):
 
                     if show_size:
                         if once:
-                            # After every transformation
+                            # After all the transformations
                             height, width, c = new_frame.shape
-                            height = str(height)
-                            width = str(width)
-                        cv2.imshow(input_data + ' Original ' + height_before_str + 'x' + width_before_str + ' vs Procesada ' + height + 'x' + width, both)
+                            height_str = str(height)
+                            width_str = str(width)
+                        cv2.imshow(input_data + ' Original ' + height_before_str + 'x' + width_before_str + ' vs Procesada ' + height_str + 'x' + width_str, both)
                     else:
                         cv2.imshow(input_data + ' Original vs Procesada', both)
        
+                    ## ONCE
+                    #################
+                    once = False # Never again
+
+
             if cv2.waitKey(1) & 0xFF == ord('q'): # To stop visualization
                 break  
-            once = False # Never again
         ######################################################
         ### UPDATE VARIABLES
         ######################################################
