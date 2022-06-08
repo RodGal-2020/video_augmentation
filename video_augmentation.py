@@ -23,7 +23,7 @@ def show_img(img, text = "Imagen"):
 def er(n, sigma = 3):
     return randint(n-sigma, n+sigma)
 
-def noise(frame, shape, n_mats, rand_mats, prob = 0.15, verbose = False, n_frame = 0, spice = "pepper"):
+def noise(frame, shape, n_mats, rand_mats, prob = 0.15, n_frame = 0, spice = "pepper"):
     rows, cols, channels = shape
     r_rows = range(rows)
     r_cols = range(cols)
@@ -51,8 +51,7 @@ def noise(frame, shape, n_mats, rand_mats, prob = 0.15, verbose = False, n_frame
 def augment(input_dir, output_dir, 
 input_format, output_format, show_video = True, 
 save_video = False, slow = False, show_size = False, 
-seconds_before_action = -1, transformations = ["aff"], n_mats = 20,
-debug_mode = False):
+seconds_before_action = -1, transformations = ["aff"], n_mats = 20, debug_mode = False):
     # This function takes all the files in input_dir and, after applying the transformations, saves them in output_dir.
 
     ######################################################
