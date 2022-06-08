@@ -46,12 +46,13 @@ def noise(frame, shape, n_mats, rand_mats, prob = 0.15, verbose = False, n_frame
 
 
 ############################################################################
-############################## AUGMENTATE ##################################
+################################ AUGMENT ###################################
 ############################################################################
 def augment(input_dir, output_dir, 
 input_format, output_format, show_video = True, 
 save_video = False, slow = False, show_size = False, 
-seconds_before_action = -1, transformations = ["aff"], n_mats = 20):
+seconds_before_action = -1, transformations = ["aff"], n_mats = 20,
+debug_mode = False):
     # This function takes all the files in input_dir and, after applying the transformations, saves them in output_dir.
 
     ######################################################
@@ -83,10 +84,6 @@ seconds_before_action = -1, transformations = ["aff"], n_mats = 20):
         ######################################################
         salt_or_pepper = "bsalt" in transformations or "bpepper" in transformations or "asalt" in transformations or "apepper" in transformations
         if salt_or_pepper:
-            # TODO: DELETE THIS
-            # rows, cols, channels = frame.shape
-            # TODO: DELETE THIS
-            # rand_mats = [np.random.rand(rows, cols) for i in range(n_mats)]
             rand_mats = [np.random.rand(video_height, video_width) for i in range(n_mats)]
             cap_example.release()
 
@@ -104,10 +101,6 @@ seconds_before_action = -1, transformations = ["aff"], n_mats = 20):
                                 [er(50), er(200)]])
             points2 = np.float32([[er(a, 10), er(b, 10)] for [a,b] in points1])
             M = cv2.getAffineTransform(points1,points2) # Transformation matrix
-            # h,w,c = frame_before.shape
-            # # TODO: DELETE THIS
-            # if once:
-            #     print("h = ", h, "w = ", w)
             
     else:
         print("Problem reading the first file")
@@ -121,9 +114,9 @@ seconds_before_action = -1, transformations = ["aff"], n_mats = 20):
     ######################################################
     for input_data in files_name:
         if seconds_before_action > 0:
-            print("Reading ", input_data, " from second ", seconds_before_action, "...", sep='')
+            print("\nReading ", input_data, " from second ", seconds_before_action, "...", sep='')
         else: 
-            print("Reading", input_data, "...")
+            print("\nReading", input_data, "...")
 
         ######################################################
         #### VARIABLES
@@ -131,10 +124,6 @@ seconds_before_action = -1, transformations = ["aff"], n_mats = 20):
         ## VIDEO INFO
         cap = cv2.VideoCapture(input_dir + input_data)
         # We assume that all videos have the same dimensions
-        # video_width = int(cap.get(3))
-        # video_height = int(cap.get(4))
-        # TODO: DELETE THIS
-        # print("NUEVO!! video_width =", video_width, " video_height =", video_height)
         ## AUX VARIABLES
         n_frame = 0 # Frame number in this video. Required for the noise() function, in order to choose a rand_mat
         frame_time = 0 # Time already shown
@@ -152,36 +141,15 @@ seconds_before_action = -1, transformations = ["aff"], n_mats = 20):
         if save_video:
             output_format = "." + output_format # TODO: Use this to generate custom real format
             output_data = output_dir + input_data # Saved with the same name AND THE SAME FORMAT
-            # TODO: DELETE THIS
-            if once:
+            if once & debug_mode:
                 print("output_data = ", output_data)
 
             if(output_format == ".mp4"): # Only this one works. Read the TODO above.
                 fourcc = cv2.VideoWriter_fourcc(*'mp4v')
             elif(output_format == ".avi"):
                 fourcc = cv2.VideoWriter_fourcc(*'XVID')
-                # TODO: DELETE THIS
-            # out = cv2.VideoWriter(output_data, fourcc, fps_float, (width_before, height_before)) # Exit, format, fps, resolution
             out = cv2.VideoWriter(output_data, fourcc, fps_float, (video_width, video_height)) # Exit, format, fps, resolution
 
-        ## First frame (out of the main loop)
-        # TODO: DELETE THIS
-        # ret,frame = cap.read() 
-        # new_frame = frame # For transformations
-        # frame_before = frame # & visualization
-
-        # if ret:
-            ######################################################
-            ### SAVE AND SHOW
-            ######################################################
-            # if show_size or save_video:
-            #     # Before
-            #     height_before, width_before, channels_before = frame.shape
-            #     height_before_str = str(height_before)
-            #     width_before_str = str(width_before)
-            #     # TODO: DELETE THIS
-            #     if once:
-            #         print("height_before = ", height_before, "width_before = ", width_before)
        
         ######################################################
         ### MAIN LOOP
@@ -257,8 +225,7 @@ seconds_before_action = -1, transformations = ["aff"], n_mats = 20):
                 ######################################################
                 if save_video:
                     out.write(new_frame)
-                    if once:
-                    # TODO: DELETE THIS
+                    if once & debug_mode:
                         print("once & save_video")
                         print("frame_before.shape = ", frame_before.shape)
                         print("new_frame.shape = ", new_frame.shape)
@@ -269,28 +236,24 @@ seconds_before_action = -1, transformations = ["aff"], n_mats = 20):
                 if show_video:
                     both = np.concatenate((frame_before, new_frame), axis=1)
                     cv2.putText(img=both, text="frame_time=" + str(round(frame_time, 2)), org=(20, 30), fontFace=cv2.FONT_HERSHEY_DUPLEX, fontScale=1, color=(0, 350, 0), thickness=2)
-                    # TODO: Adapt frame_time
+                    # FIXME: Adapt frame_time
 
                     if show_size:
                         if once:
-                            # After all the transformations
-                            # TODO: DELETE THIS
-                            print("show size once")
-                            # height, width, c = new_frame.shape
-                            # height_str = str(height)
-                            # width_str = str(width)
+                            if debug_mode:
+                                print("show size once")
                         cv2.imshow(input_data + ' Original vs Procesada ' + str(video_width) + 'x' + str(video_height), both)
-                        # cv2.imshow(input_data + ' Original ' + height_before_str + 'x' + width_before_str + ' vs Procesada ' + height_str + 'x' + width_str, both)
                     else:
                         cv2.imshow(input_data + ' Original vs Procesada', both)
        
-                    ## ONCE
-                    #################
-                    once = False # Never again
+                ## ONCE
+                #################
+                once = False # Never again
 
 
             if cv2.waitKey(1) & 0xFF == ord('q'): # To stop visualization
                 break  
+
         ######################################################
         ### UPDATE VARIABLES
         ######################################################
@@ -298,9 +261,8 @@ seconds_before_action = -1, transformations = ["aff"], n_mats = 20):
             # if (frame_time > seconds_before_action):
             frame_time += spf # Time flies
             ret,frame = cap.read() # Next frame
-            # frame_before = frame # Saved for visualization 
-            # new_frame = frame # Saved for visualization 
             n_frame += 1
+
         # while cap.isOpened():
         cap.release()
         if save_video:
