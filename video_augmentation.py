@@ -53,10 +53,7 @@ def noise(frame, shape, n_mats, rand_mats, prob = 0.15, n_frame = 0, spice = "pe
 ############################################################################
 ################################ AUGMENT ###################################
 ############################################################################
-def augment(input_dir, output_dir, 
-input_format, output_format, show_video = True, 
-save_video = False, slow = False, show_size = False, 
-seconds_before_action = -1, transformations = ["aff"], n_mats = 20, debug_mode = False):
+def augment(input_dir, output_dir, input_format, output_format, show_video = True, save_video = False, slow = False, show_size = False, seconds_before_action = -1, transformations = ["aff"], n_mats = 20, debug_mode = False):
     # This function takes all the files in input_dir and, after applying the transformations, saves them in output_dir.
 
     ######################################################
