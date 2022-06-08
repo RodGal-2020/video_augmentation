@@ -29,9 +29,6 @@ def noise(frame, shape, n_mats, rand_mats, prob = 0.15, verbose = False, n_frame
     r_cols = range(cols)
     r_channels = range(channels)
     
-    if verbose:
-        print("rows = ", rows, ", cols = ", cols, ", channels = ", channels, sep = "")
-
     if spice == "pepper":
         for i in r_rows:
             for j in r_cols:
@@ -51,7 +48,6 @@ def noise(frame, shape, n_mats, rand_mats, prob = 0.15, verbose = False, n_frame
 ############################################################################
 ############################## AUGMENTATE ##################################
 ############################################################################
-
 def augmentate(input_dir, output_dir, 
 input_format, output_format, show_video = True, 
 save_video = False, slow = False, show_size = False, 
@@ -75,8 +71,6 @@ seconds_before_action = 0, transformations = ["aff"]):
     #### VARIABLES (I)
     ######################################################
     if salt_or_pepper:
-        print("files_name[0] = ", files_name[0])
-        print("input_dir + files_name[0] = ", input_dir + files_name[0])
         cap_example = cv2.VideoCapture(input_dir + files_name[0]) # The first one
         ret, frame = cap_example.read()
         if ret:
@@ -84,14 +78,13 @@ seconds_before_action = 0, transformations = ["aff"]):
             n_mats = 5
             rand_mats = [np.random.rand(rows, cols) for i in range(n_mats)] # n_mats = 100 composiciones matriciales diferentes
             cap_example.release()
-            print("len(rand_mats) = ", len(rand_mats))
-            print("rand_mats[0].shape = ", rand_mats[0].shape)
-            for i in range(2):
-                for j in range(2):
-                    print("i = ", i, "j = ", j, "rand_mats[0][i,j] = ", rand_mats[0][i,j])
         else:
             print("Problem reading the first file")
             exit()
+
+    if "blur" in transformations:
+        kernel = np.ones((5,5),np.float32)/25
+
 
 
     ######################################################
@@ -177,8 +170,6 @@ seconds_before_action = 0, transformations = ["aff"]):
                 if "bsalt" in transformations:
                     new_frame = noise(frame = new_frame, shape = new_frame.shape, n_mats = n_mats, rand_mats = rand_mats, verbose = True, n_frame = n_frame, spice = "salt")
 
-                # TODO: bsalt
-
                 ### AFFINE TRANSFORMATION
                 ######################################################
                 if "aff" in transformations:
@@ -194,6 +185,12 @@ seconds_before_action = 0, transformations = ["aff"]):
                 ## TODO: DARKEN & LIGHTEN
                 ######################################################
 
+                ## BLUR & MEDIAN BLUR
+                ######################################################
+                if "blur" in transformations:
+                    new_frame = cv2.filter2D(new_frame, -1, kernel)
+                if "mblur" in transformations:
+                    new_frame = cv2.medianBlur(new_frame, 5)
 
                 ## RANDOM SALT/PEPPER NOISE AFTER
                 ######################################################
