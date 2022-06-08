@@ -103,6 +103,11 @@ seconds_before_action = -1, transformations = ["aff"]):
         #### VARIABLES (II)
         ######################################################
         cap = cv2.VideoCapture(input_dir + input_data)
+        video_width = int(cap.get(3))
+        video_height = int(cap.get(4))
+        # TODO: DELETE THIS
+        print("NUEVO!! video_width =", video_width, " video_height =", video_height)
+
         n_frame = 0
         frame_time = 0
         once = True
@@ -113,9 +118,6 @@ seconds_before_action = -1, transformations = ["aff"]):
             fps = int(fps_float)
             spf = 1 / fps
 
-        ### TODO: Remake this to avoid checking the first frame, using the following:
-            # frame_width = int(cap.get(3))
-            # frame_height = int(cap.get(4))
         ## First frame (out of the main loop)
         ret,frame = cap.read() 
         new_frame = frame # For transformations
@@ -125,14 +127,14 @@ seconds_before_action = -1, transformations = ["aff"]):
             ######################################################
             ### SAVE AND SHOW
             ######################################################
-            if show_size or save_video:
-                # Before
-                height_before, width_before, channels_before = frame.shape
-                height_before_str = str(height_before)
-                width_before_str = str(width_before)
-                # TODO: DELETE THIS
-                if once:
-                    print("height_before = ", height_before, "width_before = ", width_before)
+            # if show_size or save_video:
+            #     # Before
+            #     height_before, width_before, channels_before = frame.shape
+            #     height_before_str = str(height_before)
+            #     width_before_str = str(width_before)
+            #     # TODO: DELETE THIS
+            #     if once:
+            #         print("height_before = ", height_before, "width_before = ", width_before)
 
             ## AFFINE TRANSFORMATION
             ######################################################
@@ -143,10 +145,10 @@ seconds_before_action = -1, transformations = ["aff"]):
                                     [er(50), er(200)]])
                 points2 = np.float32([[er(a, 10), er(b, 10)] for [a,b] in points1])
                 M = cv2.getAffineTransform(points1,points2) # Transformation matrix
-                h,w,c = frame_before.shape
-                # TODO: DELETE THIS
-                if once:
-                    print("h = ", h, "w = ", w)
+                # h,w,c = frame_before.shape
+                # # TODO: DELETE THIS
+                # if once:
+                #     print("h = ", h, "w = ", w)
 
             ######################################################
             ### SAVING THE VIDEO
@@ -162,7 +164,9 @@ seconds_before_action = -1, transformations = ["aff"]):
                     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
                 elif(output_format == ".avi"):
                     fourcc = cv2.VideoWriter_fourcc(*'XVID')
-                out = cv2.VideoWriter(output_data, fourcc, fps_float, (width_before, height_before)) # Exit, format, fps, resolution
+                    # TODO: DELETE THIS
+                # out = cv2.VideoWriter(output_data, fourcc, fps_float, (width_before, height_before)) # Exit, format, fps, resolution
+                out = cv2.VideoWriter(output_data, fourcc, fps_float, (video_width, video_height)) # Exit, format, fps, resolution
         
         ######################################################
         ### MAIN LOOP
@@ -194,7 +198,7 @@ seconds_before_action = -1, transformations = ["aff"]):
                 ### AFFINE TRANSFORMATION
                 ######################################################
                 if "aff" in transformations:
-                    new_frame = cv2.warpAffine(new_frame,M,(w,h))
+                    new_frame = cv2.warpAffine(new_frame,M,(video_width,video_height))
                     if once: 
                         print("Applying affine_transformation")
 
@@ -250,10 +254,13 @@ seconds_before_action = -1, transformations = ["aff"]):
                     if show_size:
                         if once:
                             # After all the transformations
-                            height, width, c = new_frame.shape
-                            height_str = str(height)
-                            width_str = str(width)
-                        cv2.imshow(input_data + ' Original ' + height_before_str + 'x' + width_before_str + ' vs Procesada ' + height_str + 'x' + width_str, both)
+                            # TODO: DELETE THIS
+                            print("show size once")
+                            # height, width, c = new_frame.shape
+                            # height_str = str(height)
+                            # width_str = str(width)
+                        cv2.imshow(input_data + ' Original vs Procesada ' + str(video_width) + 'x' + str(video_height), both)
+                        # cv2.imshow(input_data + ' Original ' + height_before_str + 'x' + width_before_str + ' vs Procesada ' + height_str + 'x' + width_str, both)
                     else:
                         cv2.imshow(input_data + ' Original vs Procesada', both)
        
