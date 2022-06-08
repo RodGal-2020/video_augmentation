@@ -91,16 +91,6 @@ debug_mode = False):
         ######################################################
         if "blur" in transformations:
             kernel = np.ones((5,5), np.float32) / 25
-
-        ## AFFINE TRANSFORMATION
-        ######################################################
-        if "aff" in transformations:
-            points1 = np.float32([
-                                [er(50), er(50)],
-                                [er(100), er(50)],
-                                [er(50), er(200)]])
-            points2 = np.float32([[er(a, 10), er(b, 10)] for [a,b] in points1])
-            M = cv2.getAffineTransform(points1,points2) # Transformation matrix
             
     else:
         print("Problem reading the first file")
@@ -150,7 +140,18 @@ debug_mode = False):
                 fourcc = cv2.VideoWriter_fourcc(*'XVID')
             out = cv2.VideoWriter(output_data, fourcc, fps_float, (video_width, video_height)) # Exit, format, fps, resolution
 
-       
+        ## AFFINE TRANSFORMATION
+        ######################################################
+        # It should be different for each video
+        if "aff" in transformations:
+            points1 = np.float32([
+                                [er(50), er(50)],
+                                [er(100), er(50)],
+                                [er(50), er(200)]])
+            points2 = np.float32([[er(a, 10), er(b, 10)] for [a,b] in points1])
+            M = cv2.getAffineTransform(points1, points2) # Transformation matrix
+
+
         ######################################################
         ### MAIN LOOP
         ######################################################
