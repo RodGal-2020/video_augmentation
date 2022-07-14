@@ -1,7 +1,7 @@
 # video_augmentation
  Recopilation of tools for data augmentation with videos
 
-## How to use this repository
+## Quickstart
 Just download the `video_augmentation.py` file, copy it in your working directory and use:
 ```
 import video_augmentation as va
@@ -36,6 +36,28 @@ va.augmentate(input_dir, output_dir, input_format, output_format, show_video, sa
 
 ## What can you do with this repository?
 ![Work in progress](data/work_in_progress.png)
+
+## Status
+
+- Included transformations:
+    - [x] Affinity
+        - [ ] Scaling
+        - [ ] Homothety
+        - [ ] Translation
+        - [ ] Rotation
+        - [x] Random w/o control of the randomness
+        - [ ] Random w/ control of the randomness
+    - [x] Salt & Pepper
+        - [x] Pseudorandom
+        - [ ] Efficient pseudorandomization
+        - [ ] For every size
+    - [x] Blur
+        - [x] Median-based blur
+    - [ ] Upsampling & Downsampling
+    - [ ] Darken & Lighten
+
+- Of the repository:
+    - [ ] Complete `README.md`
 
 ## Used data
 * example.jpg taken from [Pixabay](https://pixabay.com/es/photos/globo-farolillos-chinos-linterna-3206530/)
