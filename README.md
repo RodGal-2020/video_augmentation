@@ -39,6 +39,13 @@ va.augmentate(input_dir, output_dir, input_format, output_format, show_video, sa
 
 ## Status
 
+- Of the repository:
+    - [ ] Complete `README.md`
+
+- Of the main function:
+    - [ ] Include a progress bar
+    - [ ] Use the `augmentate` code from the SACU-M dataset to create a `multi_augmentate` function
+
 - Included transformations:
     - [x] Affinity
         - [ ] Scaling
@@ -55,9 +62,6 @@ va.augmentate(input_dir, output_dir, input_format, output_format, show_video, sa
         - [x] Median-based blur
     - [ ] Upsampling & Downsampling
     - [ ] Darken & Lighten
-
-- Of the repository:
-    - [ ] Complete `README.md`
 
 ## Used data
 * example.jpg taken from [Pixabay](https://pixabay.com/es/photos/globo-farolillos-chinos-linterna-3206530/)
