@@ -14,7 +14,7 @@ from random import randint
 ############################################################################
 ########################### PACKAGE INFO ###################################
 ############################################################################
-version = "8/6/22 - Total table"
+version = "14/07/2022 - Unstable Unicorn"
 
 
 ############################################################################
@@ -53,7 +53,7 @@ def noise(frame, shape, n_mats, rand_mats, prob = 0.15, n_frame = 0, spice = "pe
 ############################################################################
 ################################ AUGMENT ###################################
 ############################################################################
-def augment(input_dir, output_dir, input_format, output_format, show_video = True, save_video = False, slow = False, show_size = False, seconds_before_action = -1, transformations = ["aff"], n_mats = 20, debug_mode = False):
+def augment(input_dir, output_dir, input_format, output_format, show_video = True, save_video = False, slow = False, show_size = False, seconds_before_action = -1, transformations = ["aff"], n_mats = 20, debug_mode = False, augmented_mark = None):
     # This function takes all the files in input_dir and, after applying the transformations, saves them in output_dir.
 
     ######################################################
@@ -131,7 +131,15 @@ def augment(input_dir, output_dir, input_format, output_format, show_video = Tru
         ## SAVING THE VIDEO
         if save_video:
             output_format = "." + output_format # TODO: Use this to generate custom real format
-            output_data = output_dir + input_data # Saved with the same name AND THE SAME FORMAT
+
+            if not os.path.isdir(output_dir):
+                os.mkdir(output_dir)
+
+            if augmented_mark != None:
+                output_data = output_dir + augmented_mark + input_data # Saved with the same name AND THE SAME FORMAT
+            else:
+                output_data = output_dir + input_data # Saved with the same name AND THE SAME FORMAT
+            
             if once & debug_mode:
                 print("output_data = ", output_data)
 
@@ -160,11 +168,12 @@ def augment(input_dir, output_dir, input_format, output_format, show_video = Tru
         ret, frame = cap.read()
 
         while cap.isOpened():
-            new_frame = frame
-            frame_before = frame
 
             if not ret:
                 break
+
+            new_frame = frame.copy()
+            frame_before = frame.copy()
 
             if (frame_time > seconds_before_action):
                 if slow:
