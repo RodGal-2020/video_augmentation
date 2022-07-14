@@ -44,6 +44,7 @@ va.augmentate(input_dir, output_dir, input_format, output_format, show_video, sa
 
 - Of the main function:
     - [ ] Include a progress bar
+    - [ ] Make active use of the GPU to boost performance
     - [ ] Use the `augmentate` code from the SACU-M dataset to create a `multi_augmentate` function
 
 - Included transformations:
