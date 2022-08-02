@@ -35,7 +35,10 @@ va.augmentate(input_dir, output_dir, input_format, output_format, show_video, sa
 ```
 
 ## What can you do with this repository?
-![Work in progress](data/work_in_progress.png)
+For now, take a look at the Quickstart section or try running [the example](example.ipynb).
+
+<img src="data/work_in_progress.png" alt="Work in progress" width="50%" >
+<br>
 
 ## Status
 
@@ -43,9 +46,10 @@ va.augmentate(input_dir, output_dir, input_format, output_format, show_video, sa
     - [ ] Complete `README.md`
 
 - Of the main function:
+    - [ ] Improve verbosity
     - [ ] Include a progress bar
     - [ ] Make active use of the GPU to boost performance
-    - [ ] Use the `augmentate` code from the SACU-M dataset to create a `multi_augmentate` function
+    - [x] Use the `augmentate` code from the SACU-M dataset to create a `multi_augmentate` function
 
 - Included transformations:
     - [x] Affinity

@@ -14,30 +14,40 @@ from random import randint
 ############################################################################
 ########################### PACKAGE INFO ###################################
 ############################################################################
-version = "14/07/2022 - Unstable Unicorn"
-
+version = "02/08/2022 - Unstable Unicorn"
+print("Using the following version of the package:", version)
 
 ############################################################################
 ############################ AUX FUNCTIONS #################################
 ############################################################################
 def set_seed(n):
+    '''
+    Sets the seed for all random operations
+    '''
     # seed(n)
     np.random.seed(n)
 
 def show_img(img, text = "Imagen"):
+    '''
+    Shows an image until a key is pressed
+    '''
     cv2.imshow(text, img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
 def er(n, sigma = 3):
+    '''
+    Returns a random int between n-sigma and n+sigma
+    '''
     return randint(n-sigma, n+sigma)
 
 ## For Salt & Pepper
-# Adapted from gutierrezps/cv2_noise.py, forked from lucaswiman/cv2_noise.py
 def sp_noise(image, salt_and_or_pepper, prob):
     '''
     Add salt and pepper noise to image
     prob: Probability of the noise
+    
+    Adapted from gutierrezps/cv2_noise.py, forked from lucaswiman/cv2_noise.py
     '''
     output = image.copy()
     if len(image.shape) == 2:
@@ -81,6 +91,8 @@ def augment(input_dir, output_dir, input_format, output_format, show_video = Tru
 
     if show_video:
         print("Press 'q' to stop playing\n")
+        
+    # TODO: Make folder if it doesn't exist
 
 
     ######################################################
@@ -298,15 +310,16 @@ def multi_augment(input_dir, output_dir, input_format, output_format, show_video
     Wrapper function for quick deployment of multiple augmentations throughout the train, validation and test subsets.
     -> Under development.
     '''
+    
     for subset, transformations in multiple_augmentations:
-        output_dir = subset + "/"
+        new_output_dir = output_dir + subset + "/"
         augmented_mark = '_'.join(transformations) + "_" # None
 
         print(f"Working with {output_dir} and {augmented_mark} to apply the {transformations} transformations")
 
         augment(
             input_dir = input_dir, 
-            output_dir = output_dir, 
+            output_dir = new_output_dir, # Modified
             input_format = input_format, 
             output_format = output_format, 
             show_video = show_video, 
@@ -317,5 +330,5 @@ def multi_augment(input_dir, output_dir, input_format, output_format, show_video
             transformations = transformations, 
             noise_prob = noise_prob,
             debug_mode = debug_mode,
-            augmented_mark = augmented_mark)
-    print("\033[1;35mmultid_augment execution finished\033[1;0m")
+            augmented_mark = augmented_mark) # Modified
+    print("\033[1;35mmulti_augment execution finished\033[1;0m")
