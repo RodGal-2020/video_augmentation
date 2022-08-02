@@ -91,9 +91,6 @@ def augment(input_dir, output_dir, input_format, output_format, show_video = Tru
 
     if show_video:
         print("Press 'q' to stop playing\n")
-        
-    # TODO: Make folder if it doesn't exist
-
 
     ######################################################
     ### TRANSFORMATIONS & VARIABLES
@@ -312,8 +309,14 @@ def multi_augment(input_dir, output_dir, input_format, output_format, show_video
     '''
     
     for subset, transformations in multiple_augmentations:
+        if not os.path.exists(output_dir):
+            os.mkdir(output_dir)
+        
         new_output_dir = output_dir + subset + "/"
         augmented_mark = '_'.join(transformations) + "_" # None
+
+        if not os.path.exists(new_output_dir):
+            os.mkdir(new_output_dir)
 
         print(f"Working with {output_dir} and {augmented_mark} to apply the {transformations} transformations")
 
