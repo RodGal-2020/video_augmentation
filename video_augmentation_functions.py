@@ -8,7 +8,7 @@ import time
 import re
 import os
 
-from random import random
+# from random import random
 from random import randint
 
 ############################################################################
@@ -20,6 +20,10 @@ version = "14/07/2022 - Unstable Unicorn"
 ############################################################################
 ############################ AUX FUNCTIONS #################################
 ############################################################################
+def set_seed(n):
+    # seed(n)
+    np.random.seed(n)
+
 def show_img(img, text = "Imagen"):
     cv2.imshow(text, img)
     cv2.waitKey(0)
@@ -28,33 +32,43 @@ def show_img(img, text = "Imagen"):
 def er(n, sigma = 3):
     return randint(n-sigma, n+sigma)
 
-def noise(frame, shape, n_mats, rand_mats, prob = 0.15, n_frame = 0, spice = "pepper"):
-    rows, cols, channels = shape
-    r_rows = range(rows)
-    r_cols = range(cols)
-    r_channels = range(channels)
-    
-    if spice == "pepper":
-        for i in r_rows:
-            for j in r_cols:
-                if rand_mats[n_frame % n_mats][i,j] < prob:
-                    for k in r_channels:
-                        frame[i][j][k] = 0
-    elif spice == "salt":
-        for i in r_rows:
-            for j in r_cols:
-                if rand_mats[n_frame % n_mats][i,j] < prob:
-                    for k in r_channels:
-                        frame[i][j][k] = 255
-                        
-    return frame
+## For Salt & Pepper
+# Adapted from gutierrezps/cv2_noise.py, forked from lucaswiman/cv2_noise.py
+def sp_noise(image, salt_and_or_pepper, prob):
+    '''
+    Add salt and pepper noise to image
+    prob: Probability of the noise
+    '''
+    output = image.copy()
+    if len(image.shape) == 2:
+        black = 0
+        white = 255            
+    else:
+        colorspace = image.shape[2]
+        if colorspace == 3:  # RGB
+            black = np.array([0, 0, 0], dtype='uint8')
+            white = np.array([255, 255, 255], dtype='uint8')
+        else:  # RGBA
+            black = np.array([0, 0, 0, 255], dtype='uint8')
+            white = np.array([255, 255, 255, 255], dtype='uint8')
+    probs = np.random.random(output.shape[:2])
+    if "salt" in salt_and_or_pepper and "pepper" in salt_and_or_pepper:
+        output[probs < (prob / 2)] = black
+        output[probs > 1 - (prob / 2)] = white
+    elif "salt" in salt_and_or_pepper:
+        output[probs < prob] = white
+    else:
+        output[probs < prob] = black
+    return output
 
 
 ############################################################################
 ################################ AUGMENT ###################################
 ############################################################################
-def augment(input_dir, output_dir, input_format, output_format, show_video = True, save_video = False, slow = False, show_size = False, seconds_before_action = -1, transformations = ["aff"], n_mats = 20, debug_mode = False, augmented_mark = None):
-    # This function takes all the files in input_dir and, after applying the transformations, saves them in output_dir.
+def augment(input_dir, output_dir, input_format, output_format, show_video = True, save_video = False, slow = False, show_size = False, seconds_before_action = -1, transformations = [], noise_prob = 0.3, debug_mode = False, augmented_mark = None):
+    '''
+    This function takes all the files in input_dir and, after applying the transformations, saves them in output_dir.
+    '''
 
     ######################################################
     ## WORKING DIRECTORY
@@ -62,7 +76,7 @@ def augment(input_dir, output_dir, input_format, output_format, show_video = Tru
     files = os.listdir(input_dir)
 
     exp = re.compile('.*\.' + input_format + '$')
-    files_name = [s for s in files if exp.match(s)]
+    files_name = [s for s in files if exp.match(s)] # Only the files in the chosen format
     print("Working with the following files in '", input_dir,"': ", files_name, sep = "")
 
     if show_video:
@@ -72,29 +86,19 @@ def augment(input_dir, output_dir, input_format, output_format, show_video = Tru
     ######################################################
     ### TRANSFORMATIONS & VARIABLES
     ######################################################
+    # We read the first element as a way of checking if the transformations can be applied
     cap_example = cv2.VideoCapture(input_dir + files_name[0]) # The first one
     ret, frame = cap_example.read()
     if ret:
         ## COMMON VARIABLES
         ######################################################
-        # We assume that all videos have the same dimensions
-        video_width = int(cap_example.get(3))
-        video_height = int(cap_example.get(4))
-
-        ## SALT & PEPPER
-        ######################################################
-        salt_or_pepper = "bsalt" in transformations or "bpepper" in transformations or "asalt" in transformations or "apepper" in transformations
-        if salt_or_pepper:
-            rand_mats = [np.random.rand(video_height, video_width) for i in range(n_mats)]
-            cap_example.release()
 
         ## BLUR TRANSFORMATION
         ######################################################
         if "blur" in transformations:
             kernel = np.ones((5,5), np.float32) / 25
-            
     else:
-        print("Problem reading the first file")
+        print("Problem reading the first file, exiting...")
         exit()
 
 
@@ -119,7 +123,9 @@ def augment(input_dir, output_dir, input_format, output_format, show_video = Tru
         n_frame = 0 # Frame number in this video. Required for the noise() function, in order to choose a rand_mat
         frame_time = 0 # Time already shown
         once = True # To show certain lines, but only once per file
-  
+        video_width = int(cap.get(3))
+        video_height = int(cap.get(4))
+
         ## FPS
         # Supposing that FPS are the same always can lead to error (look at "SAVING THE VIDEO")
         if show_video or save_video:
@@ -136,11 +142,14 @@ def augment(input_dir, output_dir, input_format, output_format, show_video = Tru
                 os.mkdir(output_dir)
 
             if augmented_mark != None:
-                output_data = output_dir + augmented_mark + input_data # Saved with the same name AND THE SAME FORMAT
+                if transformations == []:
+                    output_data = output_dir + "original_" + input_data # Saved with a modified name AND THE SAME FORMAT
+                else:
+                    output_data = output_dir + augmented_mark + input_data # Saved with a modified name AND THE SAME FORMAT
             else:
                 output_data = output_dir + input_data # Saved with the same name AND THE SAME FORMAT
             
-            if once & debug_mode:
+            if once and debug_mode:
                 print("output_data = ", output_data)
 
             if(output_format == ".mp4"): # Only this one works. Read the TODO above.
@@ -186,11 +195,11 @@ def augment(input_dir, output_dir, input_format, output_format, show_video = Tru
                 ### RANDOM SALT/PEPPER NOISE BEFORE
                 ######################################################                
                 if "bpepper" in transformations:
-                    new_frame = noise(frame = new_frame, shape = new_frame.shape, n_mats = n_mats, rand_mats = rand_mats, n_frame = n_frame, spice = "pepper")
+                    new_frame = sp_noise(new_frame, ["pepper"], noise_prob)
                     if once: 
                         print("Applying before_pepper")
                 if "bsalt" in transformations:
-                    new_frame = noise(frame = new_frame, shape = new_frame.shape, n_mats = n_mats, rand_mats = rand_mats, n_frame = n_frame, spice = "salt")
+                    new_frame = sp_noise(new_frame, ["salt"], noise_prob)
                     if once: 
                         print("Applying before_salt")
 
@@ -223,11 +232,11 @@ def augment(input_dir, output_dir, input_format, output_format, show_video = Tru
                 ## RANDOM SALT/PEPPER NOISE AFTER
                 ######################################################
                 if "apepper" in transformations:
-                    new_frame = noise(frame = new_frame, shape = new_frame.shape, n_mats = n_mats, rand_mats = rand_mats, n_frame = n_frame, spice = "pepper")
+                    new_frame = sp_noise(new_frame, ["pepper"], noise_prob)
                     if once: 
                         print("Applying after_pepper")
                 if "asalt" in transformations:
-                    new_frame = noise(frame = new_frame, shape = new_frame.shape, n_mats = n_mats, rand_mats = rand_mats, n_frame = n_frame, spice = "salt")
+                    new_frame = sp_noise(new_frame, ["salt"], noise_prob)
                     if once: 
                         print("Applying after_salt")
 
@@ -236,7 +245,7 @@ def augment(input_dir, output_dir, input_format, output_format, show_video = Tru
                 ######################################################
                 if save_video:
                     out.write(new_frame)
-                    if once & debug_mode:
+                    if once and debug_mode:
                         print("once & save_video")
                         print("frame_before.shape = ", frame_before.shape)
                         print("new_frame.shape = ", new_frame.shape)
@@ -256,7 +265,7 @@ def augment(input_dir, output_dir, input_format, output_format, show_video = Tru
                         cv2.imshow(input_data + ' Original vs Procesada ' + str(video_width) + 'x' + str(video_height), both)
                     else:
                         cv2.imshow(input_data + ' Original vs Procesada', both)
-       
+
                 ## ONCE
                 #################
                 once = False # Never again
@@ -279,3 +288,34 @@ def augment(input_dir, output_dir, input_format, output_format, show_video = Tru
         if save_video:
             out.release()
         cv2.destroyAllWindows()
+        
+        
+############################################################################
+############################# MULTI-AUGMENT ################################
+############################################################################
+def multi_augment(input_dir, output_dir, input_format, output_format, show_video = True, save_video = False, slow = False, show_size = False, seconds_before_action = -1, multiple_augmentations = [("train", ["aff"]), ("val", ["apepper", "blur"]), ("test", [])], noise_prob = 0.3, debug_mode = False):
+    '''
+    Wrapper function for quick deployment of multiple augmentations throughout the train, validation and test subsets.
+    -> Under development.
+    '''
+    for subset, transformations in multiple_augmentations:
+        output_dir = subset + "/"
+        augmented_mark = '_'.join(transformations) + "_" # None
+
+        print(f"Working with {output_dir} and {augmented_mark} to apply the {transformations} transformations")
+
+        augment(
+            input_dir = input_dir, 
+            output_dir = output_dir, 
+            input_format = input_format, 
+            output_format = output_format, 
+            show_video = show_video, 
+            save_video = save_video, 
+            slow = slow, 
+            show_size = show_size, 
+            seconds_before_action = seconds_before_action, 
+            transformations = transformations, 
+            noise_prob = noise_prob,
+            debug_mode = debug_mode,
+            augmented_mark = augmented_mark)
+    print("\033[1;35mmultid_augment execution finished\033[1;0m")
