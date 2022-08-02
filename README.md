@@ -49,7 +49,7 @@ For now, take a look at the Quickstart section or try running [the example](exam
     - [ ] Improve verbosity
     - [ ] Include a progress bar
     - [ ] Make active use of the GPU to boost performance
-    - [x] Use the `augmentate` code from the SACU-M dataset to create a `multi_augmentate` function
+    - [x] Use the `augment` function to create a `multi_augment` function in order to allow a quick deployment of a new dataset
 
 - Included transformations:
     - [x] Affinity
