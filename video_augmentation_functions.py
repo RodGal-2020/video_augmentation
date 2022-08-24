@@ -14,7 +14,7 @@ from random import randint
 ############################################################################
 ########################### PACKAGE INFO ###################################
 ############################################################################
-version = "02/08/2022 - Blue Ballad"
+version = "24/08/2022 - Celurean Crab"
 print("Using the following version of the package:", version)
 
 ############################################################################
@@ -95,24 +95,30 @@ def augment(input_dir, output_dir, input_format, output_format, show_video = Tru
     ######################################################
     ### TRANSFORMATIONS & VARIABLES
     ######################################################
-    # We read the first element as a way of checking if the transformations can be applied
-    cap_example = cv2.VideoCapture(input_dir + files_name[0]) # The first one
-    ret, frame = cap_example.read()
-    if ret:
-        ## COMMON VARIABLES
-        ######################################################
+    
+    ## BLUR TRANSFORMATION
+    ######################################################
+    if "blur" in transformations:
+        kernel = np.ones((5,5), np.float32) / 25
 
-        ## BLUR TRANSFORMATION
-        ######################################################
-        if "blur" in transformations:
-            kernel = np.ones((5,5), np.float32) / 25
-    else:
-        print("Problem reading the first file, exiting...")
+    ## UPSAMPLING & DOWNSAMPLING TRANSFORMATIONS
+    ######################################################
+    use_upsampling = False
+    use_downsampling = False
+    for t in transformations:
+        m1 = re.match("usample-(.+)", t)
+        m2 = re.match("dsample-(.+)", t)
+        if m1 is not None:
+            usample_p = float(m1.group(1)) # Probability of upsampling
+            use_upsampling = True
+        if m2 is not None:
+            dsample_p = float(m2.group(1)) # Probability of downsampling
+            use_downsampling = True
+            
+    if use_upsampling and use_downsampling:
+        print("Use only usample or dsample, but not both")
         exit()
-
-
-
-
+        
     ######################################################
     #### FOR EACH FILE
     ######################################################
@@ -130,6 +136,7 @@ def augment(input_dir, output_dir, input_format, output_format, show_video = Tru
         # We assume that all videos have the same dimensions
         ## AUX VARIABLES
         n_frame = 0 # Frame number in this video. Required for the noise() function, in order to choose a rand_mat
+        n_frames = int(cap.get(cv2. CAP_PROP_FRAME_COUNT))
         frame_time = 0 # Time already shown
         once = True # To show certain lines, but only once per file
         video_width = int(cap.get(3))
@@ -179,6 +186,20 @@ def augment(input_dir, output_dir, input_format, output_format, show_video = Tru
             M = cv2.getAffineTransform(points1, points2) # Transformation matrix
 
 
+        ## UPSAMPLE & DOWNSAMPLE TRANSFORMATIONS
+        ######################################################
+        # They should be different for each video
+        
+        if use_downsampling:
+            dsample_rand = np.random.rand(n_frames)
+            if debug_mode and once: 
+                print("Upsample transformation")
+            
+        if use_upsampling:
+            usample_rand = np.random.rand(n_frames)
+            if debug_mode and once:
+                print("Downsample transformation")
+
         ######################################################
         ### MAIN LOOP
         ######################################################
@@ -219,9 +240,9 @@ def augment(input_dir, output_dir, input_format, output_format, show_video = Tru
                     if once: 
                         print("Applying affine_transformation")
 
-                ## TODO: UPSAMPLING & DOWNSAMPLING
+                ## UPSAMPLING & DOWNSAMPLING
                 ######################################################
-                # Xopre: I believe that this should go in the save/show the frame section
+                # This goes in the save/show section
 
 
                 ## TODO: DARKEN & LIGHTEN
@@ -253,7 +274,23 @@ def augment(input_dir, output_dir, input_format, output_format, show_video = Tru
                 ### SAVE THE FRAME
                 ######################################################
                 if save_video:
-                    out.write(new_frame)
+                    if not use_downsampling: 
+                        out.write(new_frame)
+                    else:
+                        print(f"dsample_rand[n_frame] = {dsample_rand[n_frame]}, dsample_rand[n_frame] < dsample_p = {dsample_rand[n_frame] < dsample_p}")
+                        if dsample_rand[n_frame] < dsample_p:
+                            if once:
+                                print("Applying downsampling")
+                            pass
+                        else:
+                            out.write(new_frame)
+
+                    if use_upsampling: 
+                        if usample_rand[n_frame] < usample_p: 
+                            if once:
+                                print("Applying upsampling")
+                            out.write(new_frame)
+                        
                     if once and debug_mode:
                         print("once & save_video")
                         print("frame_before.shape = ", frame_before.shape)

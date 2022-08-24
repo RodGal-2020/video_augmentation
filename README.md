@@ -66,7 +66,8 @@ For now, take a look at the Quickstart section or try running [the example](exam
         - [ ] For every size
     - [x] Blur
         - [x] Median-based blur
-    - [ ] Upsampling & Downsampling
+    - [x] Upsampling & Downsampling
+        - [x] With custom probabilities
     - [ ] Darken & Lighten
 
 ## Used data
