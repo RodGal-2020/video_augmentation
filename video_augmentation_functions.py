@@ -14,7 +14,7 @@ from random import randint
 ############################################################################
 ########################### PACKAGE INFO ###################################
 ############################################################################
-version = "24/08/2022 - Celurean Crab"
+version = "26/09/2022 - Danish Dinner"
 print("Using the following version of the package:", version)
 
 ############################################################################
@@ -71,11 +71,10 @@ def sp_noise(image, salt_and_or_pepper, prob):
         output[probs < prob] = black
     return output
 
-
 ############################################################################
 ################################ AUGMENT ###################################
 ############################################################################
-def augment(input_dir, output_dir, input_format, output_format, show_video = True, save_video = False, slow = False, show_size = False, seconds_before_action = -1, transformations = [], noise_prob = 0.3, debug_mode = False, augmented_mark = None):
+def augment(input_dir, output_dir, input_format, output_format, show_video = True, save_video = False, slow = False, show_size = False, seconds_before_action = -1, transformations = [], noise_prob = 0.3, debug_mode = False):
     '''
     This function takes all the files in input_dir and, after applying the transformations, saves them in output_dir.
     '''
@@ -91,7 +90,7 @@ def augment(input_dir, output_dir, input_format, output_format, show_video = Tru
 
     if show_video:
         print("Press 'q' to stop playing\n")
-
+        
     ######################################################
     ### TRANSFORMATIONS & VARIABLES
     ######################################################
@@ -157,21 +156,25 @@ def augment(input_dir, output_dir, input_format, output_format, show_video = Tru
             if not os.path.isdir(output_dir):
                 os.mkdir(output_dir)
 
-            if augmented_mark != None:
-                if transformations == []:
-                    output_data = output_dir + "original_" + input_data # Saved with a modified name AND THE SAME FORMAT
-                else:
-                    output_data = output_dir + augmented_mark + input_data # Saved with a modified name AND THE SAME FORMAT
+            if transformations == []:
+                aug_output_dir = os.path.join(output_dir, "original")
+                output_data = os.path.join(aug_output_dir, input_data)
             else:
-                output_data = output_dir + input_data # Saved with the same name AND THE SAME FORMAT
+                aug_output_dir = os.path.join(output_dir, "_".join(transformations))
+                output_data = os.path.join(aug_output_dir, input_data)
+                
+            if not os.path.exists(aug_output_dir):
+                  os.mkdir(aug_output_dir)
             
             if once and debug_mode:
+                print("aug_output_dir = ", aug_output_dir)
                 print("output_data = ", output_data)
 
             if(output_format == ".mp4"): # Only this one works. Read the TODO above.
                 fourcc = cv2.VideoWriter_fourcc(*'mp4v')
             elif(output_format == ".avi"):
                 fourcc = cv2.VideoWriter_fourcc(*'XVID')
+                
             out = cv2.VideoWriter(output_data, fourcc, fps_float, (video_width, video_height)) # Exit, format, fps, resolution
 
         ## AFFINE TRANSFORMATION
@@ -334,8 +337,7 @@ def augment(input_dir, output_dir, input_format, output_format, show_video = Tru
         if save_video:
             out.release()
         cv2.destroyAllWindows()
-        
-        
+
 ############################################################################
 ############################# MULTI-AUGMENT ################################
 ############################################################################
@@ -345,15 +347,15 @@ def multi_augment(input_dir, output_dir, input_format, output_format, show_video
     -> Under development.
     '''
     
-    for subset, transformations in multiple_augmentations:
-        if not os.path.exists(output_dir):
+    if not os.path.exists(output_dir):
             os.mkdir(output_dir)
-        
-        new_output_dir = output_dir + subset + "/"
-        augmented_mark = '_'.join(transformations) + "_" # None
-
+    
+    for subset, transformations in multiple_augmentations:
+        new_output_dir = output_dir + "/" + subset + "/"
         if not os.path.exists(new_output_dir):
             os.mkdir(new_output_dir)
+            
+        augmented_mark = '_'.join(transformations) # None
 
         print(f"Working with {output_dir} and {augmented_mark} to apply the {transformations} transformations")
 
@@ -369,6 +371,5 @@ def multi_augment(input_dir, output_dir, input_format, output_format, show_video
             seconds_before_action = seconds_before_action, 
             transformations = transformations, 
             noise_prob = noise_prob,
-            debug_mode = debug_mode,
-            augmented_mark = augmented_mark) # Modified
+            debug_mode = debug_mode) # Modified
     print("\033[1;35mmulti_augment execution finished\033[1;0m")
