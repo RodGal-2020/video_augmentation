@@ -1,0 +1,30 @@
+===========================================================================
+Log for the execution launched the 29/09/2022 at 09:54:44
+---------------------------------------------------------------------------
+Configuration: 
+	input_dir = data/
+	output_dir = new_data/augment/
+	input_format = mp4
+	output_format = mp4
+	show_video = True
+	save_video = True
+	slow = False
+	show_size = True
+	seconds_before_action = 0
+	transformations = ['aff', 'usample-0.2']
+	noise_prob = 0.1
+	debug_mode = False
+	log_dir = logs/augment.log
+---------------------------------------------------------------------------
+Execution trace:
+	- Working with 3 files
+	09:54:44: Applying the following transformations: aff, usample-0.2.
+	09:54:53: All transformations applied.
+---------------------------------------------------------------------------
+Stats:
+	- Total elapsed time: 8.62 seconds.
+	- Mean elapsed time: 
+		- per file: 1.44 seconds.
+		- per transformation: 4.31 seconds.
+		- per file & transformation: 0.72 seconds.
+===========================================================================

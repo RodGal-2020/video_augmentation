@@ -14,7 +14,7 @@ from random import randint
 ############################################################################
 ########################### PACKAGE INFO ###################################
 ############################################################################
-version = "26/09/2022 - Danish Dinner"
+version = "29/09/2022 - Enigma Epoch"
 print("Using the following version of the package:", version)
 
 ############################################################################
@@ -74,7 +74,7 @@ def sp_noise(image, salt_and_or_pepper, prob):
 ############################################################################
 ################################ AUGMENT ###################################
 ############################################################################
-def augment(input_dir, output_dir, input_format, output_format, show_video = True, save_video = False, slow = False, show_size = False, seconds_before_action = -1, transformations = [], noise_prob = 0.3, debug_mode = False):
+def augment(input_dir, output_dir, input_format, output_format, show_video = True, save_video = False, slow = False, show_size = False, seconds_before_action = -1, transformations = [], noise_prob = 0.3, debug_mode = False, log_dir = None, multi = False):
     '''
     This function takes all the files in input_dir and, after applying the transformations, saves them in output_dir.
     '''
@@ -84,6 +84,28 @@ def augment(input_dir, output_dir, input_format, output_format, show_video = Tru
     ######################################################
     files = os.listdir(input_dir)
 
+    if (log_dir is not None) and (not multi):
+      save_log = True
+    else:
+      save_log = False
+      
+    print("save_log =", save_log)
+
+    if save_log:
+      print("Saving log to " + log_dir)
+      
+      start_time = time.time()
+      
+      if os.path.exists(log_dir):
+        log = open(log_dir, "a")
+        log.write("\nNew log for the execution launched the " + time.strftime("%d/%m/%Y") + " at " + time.strftime("%H:%M:%S") + "\n---------------------------------------------------------------------------")
+      else:
+        log = open(log_dir, "w")
+        log.write("===========================================================================\n")
+        log.write("Log for the execution launched the " + time.strftime("%d/%m/%Y") + " at " + time.strftime("%H:%M:%S") + "\n---------------------------------------------------------------------------")
+        
+      log.write("\nConfiguration: \n\tinput_dir = %s\n\toutput_dir = %s\n\tinput_format = %s\n\toutput_format = %s\n\tshow_video = %s\n\tsave_video = %s\n\tslow = %s\n\tshow_size = %s\n\tseconds_before_action = %s\n\ttransformations = %s\n\tnoise_prob = %s\n\tdebug_mode = %s\n\tlog_dir = %s" % (input_dir, output_dir, input_format, output_format, show_video, save_video, slow, show_size, seconds_before_action, transformations, noise_prob, debug_mode, log_dir))
+      
     exp = re.compile('.*\.' + input_format + '$')
     files_name = [s for s in files if exp.match(s)] # Only the files in the chosen format
     print("Working with the following files in '", input_dir,"': ", files_name, sep = "")
@@ -121,6 +143,12 @@ def augment(input_dir, output_dir, input_format, output_format, show_video = Tru
     ######################################################
     #### FOR EACH FILE
     ######################################################
+    if save_log:
+      log.write("\n---------------------------------------------------------------------------")
+      log.write("\nExecution trace:")
+      log.write("\n\t- Working with " + str(len(files_name)) + " files")
+      log.write("\n\t" + time.strftime("%H:%M:%S") + ": Applying the following transformations: " + ", ".join(transformations) + ".")
+    
     for input_data in files_name:
         if seconds_before_action > 0:
             print("\nReading ", input_data, " from second ", seconds_before_action, "...", sep='')
@@ -337,11 +365,21 @@ def augment(input_dir, output_dir, input_format, output_format, show_video = Tru
         if save_video:
             out.release()
         cv2.destroyAllWindows()
+    if save_log:
+      log.write("\n\t" + time.strftime("%H:%M:%S") + ": All transformations applied.")
+      log.write("\n---------------------------------------------------------------------------")
+      log.write("\nStats:")
+      log.write("\n\t- Total elapsed time: " + str(round(time.time() - start_time, 2)) + " seconds.")
+      log.write("\n\t- Mean elapsed time: \n\t\t- per file: " + str(round((time.time() - start_time) / len(files), 2) ) + " seconds.")
+      log.write("\n\t\t- per transformation: " + str(round((time.time() - start_time) / len(transformations), 2) ) + " seconds.")
+      log.write("\n\t\t- per file & transformation: " + str(round((time.time() - start_time) / len(files) / len(transformations), 2) ) + " seconds.")
+      log.write("\n===========================================================================\n")
+      log.close()
 
 ############################################################################
 ############################# MULTI-AUGMENT ################################
 ############################################################################
-def multi_augment(input_dir, output_dir, input_format, output_format, show_video = True, save_video = False, slow = False, show_size = False, seconds_before_action = -1, multiple_augmentations = [("train", ["aff"]), ("val", ["apepper", "blur"]), ("test", [])], noise_prob = 0.3, debug_mode = False):
+def multi_augment(input_dir, output_dir, input_format, output_format, show_video = True, save_video = False, slow = False, show_size = False, seconds_before_action = -1, multiple_augmentations = [("train", ["aff"]), ("val", ["apepper", "blur"]), ("test", [])], noise_prob = 0.3, debug_mode = False, log_dir = None):
     '''
     Wrapper function for quick deployment of multiple augmentations throughout the train, validation and test subsets.
     -> Under development.
@@ -349,6 +387,20 @@ def multi_augment(input_dir, output_dir, input_format, output_format, show_video
     
     if not os.path.exists(output_dir):
             os.mkdir(output_dir)
+    
+    if log_dir is not None:
+      save_log = True
+      start_time = time.time()
+      
+      if os.path.exists(log_dir):
+        log = open(log_dir, "a")
+        log.write("\nNew multi-augment launched the " + time.strftime("%d/%m/%Y") + " at " + time.strftime("%H:%M:%S") + "\n---------------------------------------------------------------------------")
+      else:
+        log = open(log_dir, "w")
+        log.write("===========================================================================\n")
+        log.write("Log for the multi-augment launched the " + time.strftime("%d/%m/%Y") + " at " + time.strftime("%H:%M:%S") + "\n---------------------------------------------------------------------------")
+        
+      log.close()
     
     for subset, transformations in multiple_augmentations:
         new_output_dir = output_dir + "/" + subset + "/"
@@ -371,5 +423,23 @@ def multi_augment(input_dir, output_dir, input_format, output_format, show_video
             seconds_before_action = seconds_before_action, 
             transformations = transformations, 
             noise_prob = noise_prob,
-            debug_mode = debug_mode) # Modified
+            debug_mode = debug_mode,
+            log_dir = log_dir,
+            multi = True
+          ) # Modified
+    
+    if save_log:
+      log = open(log_dir, "a")
+      
+      all_transformations = [t for (a, t) in multiple_augmentations]
+      files = os.listdir(input_dir)
+      
+      log.write("\n\t- Total elapsed time: " + str(round(time.time() - start_time, 2)) + " seconds.")
+      log.write("\n\t- Mean elapsed time per file: " + str(round((time.time() - start_time) / (len(files)), 2)) + " seconds.")
+      log.write("\n\t- Mean elapsed time per group of transformations / folder: " + str(round((time.time() - start_time) / len(all_transformations), 2)) + " seconds.")
+      
+      log.write("\n===========================================================================\n")
+      
+      log.close()    
+    
     print("\033[1;35mmulti_augment execution finished\033[1;0m")
