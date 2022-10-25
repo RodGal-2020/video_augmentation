@@ -70,6 +70,10 @@ For now, take a look at the Quickstart section or try running [the example](exam
         - [x] With custom probabilities
     - [ ] Darken & Lighten
 
+## Other resources
+* [Data augmentation in Spanish](https://tal-ia.github.io/data_augmentation/)
+* [Project webpage](https://github.com/TAL-IA)
+
 ## Used data
 * example_different_size.mp4 taken from [Pixabay](https://pixabay.com/es/videos/chico-salto-danza-hombre-persona-21827/)
 * example_small.jpg taken from [Pixabay](https://pixabay.com/es/photos/gato-felino-mascota-animal-6960183/)
